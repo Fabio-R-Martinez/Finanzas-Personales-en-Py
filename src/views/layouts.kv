@@ -1,0 +1,80 @@
+# layouts.kv
+ScreenManager:
+    DashboardScreen:
+
+<DashboardScreen>:
+    name: "dashboard"
+
+    MDBoxLayout:
+        orientation: "vertical"
+
+        MDTopAppBar:
+            title: "Finanzas Personales"
+            elevation: 4
+
+        MDBoxLayout:
+            orientation: "vertical"
+            padding: "20dp"
+            spacing: "15dp"
+
+            MDCard:
+                size_hint_y: None
+                height: "100dp"
+                padding: "15dp"
+                radius: [12,]
+                elevation: 2
+
+                MDBoxLayout:
+                    orientation: "vertical"
+                    MDLabel:
+                        text: "Balance General"
+                        font_style: "H6"
+                        bold: True
+                    MDLabel:
+                        text: "Control mensual de presupuesto familiar"
+                        theme_text_color: "Secondary"
+
+            MDBoxLayout:
+                orientation: "horizontal"
+                spacing: "10dp"
+                size_hint_y: None
+                height: "100dp"
+
+                MDCard:
+                    padding: "10dp"
+                    radius: [10,]
+                    elevation: 1
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        MDLabel:
+                            text: "Ingresos Totales"
+                            theme_text_color: "Secondary"
+                            font_style: "Caption"
+                        MDLabel:
+                            text: "$ 0.00"
+                            font_style: "H5"
+                            theme_text_color: "Custom"
+                            text_color: 0, 0.6, 0, 1
+
+                MDCard:
+                    padding: "10dp"
+                    radius: [10,]
+                    elevation: 1
+                    MDBoxLayout:
+                        orientation: "vertical"
+                        MDLabel:
+                            text: "Gastos Totales"
+                            theme_text_color: "Secondary"
+                            font_style: "Caption"
+                        MDLabel:
+                            text: "$ 0.00"
+                            font_style: "H5"
+                            theme_text_color: "Custom"
+                            text_color: 0.8, 0, 0, 1
+
+            MDRaisedButton:
+                text: "Registrar Transacción"
+                pos_hint: {"center_x": 0.5}
+
+            Widget:
+                # Espaciador flexible para empujar el contenido hacia arriba
