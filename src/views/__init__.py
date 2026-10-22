@@ -14,6 +14,11 @@ from src.database.db_manager import DBManager
 from src.views.screens import DashboardScreen, IngresosScreen, GastosScreen
 from src.utils.formatters import fmt_moneda
 
+# src/views/__init__.py
+from src.views.dashboard_view import DashboardScreen
+from src.views.gasto_view import FormularioGastoScreen
+
+__all__ = ["DashboardScreen", "FormularioGastoScreen"]
 
 class FinanzasApp(MDApp):
     def build(self):
