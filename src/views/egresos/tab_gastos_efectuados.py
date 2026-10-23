@@ -19,7 +19,7 @@ KV_TAB_GASTOS_EFECTUADOS = '''
                 orientation: 'vertical'
                 padding: "20dp"
                 spacing: "15dp"
-                radius:
+                radius: [16, 16, 16, 16]
                 elevation: 2
                 size_hint_y: None
                 height: self.minimum_height
@@ -38,11 +38,13 @@ KV_TAB_GASTOS_EFECTUADOS = '''
                     size_hint_y: None
                     height: self.minimum_height
 
-                    # Columna 1: Montos
+                    # Columna 1: Monto Gastado y Presupuestado
                     MDBoxLayout:
                         orientation: 'vertical'
                         spacing: "12dp"
                         size_hint_x: 0.5
+                        size_hint_y: None
+                        height: self.minimum_height
 
                         MDTextField:
                             id: campo_monto_ejecutado
@@ -61,11 +63,13 @@ KV_TAB_GASTOS_EFECTUADOS = '''
                             helper_text_mode: "persistent"
                             icon_right: "calculator"
 
-                    # Columna 2: Categoría y Descripción
+                    # Columna 2: Categoría y Artículo / Concepto
                     MDBoxLayout:
                         orientation: 'vertical'
                         spacing: "12dp"
                         size_hint_x: 0.5
+                        size_hint_y: None
+                        height: self.minimum_height
 
                         MDTextField:
                             id: campo_categoria
@@ -121,7 +125,7 @@ class TabGastosEfectuados(MDFloatLayout, MDTabsBase):
         }
 
     def validar_formulario(self):
-        """Valida que los campos obligatorios no estén vacíos."""
+        """Valida que los campos obligatorios no estén vacíos ni sean inválidos."""
         datos = self.obtener_datos()
         es_valido = True
 
