@@ -55,7 +55,7 @@ KV_TAB_EGRESOS_PREVISTOS = '''
                     text: "Montos asignados"
                     bold: True
                     font_style: "Subtitle2"
-                    halign: "left"
+                    halign: "right"
                     size_hint_x: 0.35
 
                 MDLabel:
@@ -138,10 +138,10 @@ class TabEgresosPrevistos(MDFloatLayout, MDTabsBase):
                 size_hint_x=0.45
             )
 
-            # Encolumnado a la izquierda
+            # Encolumnado a la derecha
             lbl_monto = MDLabel(
                 text=formatear_monto_entero(cat.get("monto_presupuestado", 0)),
-                halign="left",
+                halign="right",
                 size_hint_x=0.35
             )
 
