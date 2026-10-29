@@ -1,4 +1,4 @@
-#  src/views/egresos/tab_gastos_efectuados.py
+# src/views/egresos/tab_gastos_efectuados.py
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.menu import MDDropdownMenu
@@ -8,7 +8,6 @@ from kivy.clock import Clock
 
 
 def formatear_monto_entero(valor):
-    """Convierte un valor numérico a entero formateado con puntos para miles ($ 1.000)."""
     try:
         val_int = int(float(valor))
         return f"$ {val_int:,}".replace(",", ".")
@@ -32,7 +31,7 @@ KV_TAB_GASTOS_EFECTUADOS = '''
                 orientation: 'vertical'
                 padding: "20dp"
                 spacing: "15dp"
-                radius:
+                radius: [15, 15, 15, 15]
                 elevation: 2
                 size_hint_y: None
                 height: self.minimum_height
@@ -66,7 +65,6 @@ KV_TAB_GASTOS_EFECTUADOS = '''
                             helper_text_mode: "on_focus"
                             input_filter: "int"
                             icon_right: "currency-usd"
-                            on_text: root.evaluar_estado_concepto()
 
                         MDTextField:
                             id: campo_monto_esperado
@@ -77,7 +75,7 @@ KV_TAB_GASTOS_EFECTUADOS = '''
                             helper_text_mode: "persistent"
                             icon_right: "calculator"
 
-                    # Columna 2: Categoría (Desplegable) y Artículo / Servicio
+                    # Columna 2: Categoría y Artículo / Servicio (Opcional)
                     MDBoxLayout:
                         orientation: 'vertical'
                         spacing: "12dp"
@@ -97,9 +95,8 @@ KV_TAB_GASTOS_EFECTUADOS = '''
 
                         MDTextField:
                             id: campo_descripcion
-                            disabled: True
-                            hint_text: "Artículo o Servicio *"
-                            helper_text: "Se activa al ingresar el monto gastado"
+                            hint_text: "Artículo o Servicio (Opcional)"
+                            helper_text: "Detalle del gasto efectuado"
                             helper_text_mode: "persistent"
                             icon_right: "text-box-outline"
 
@@ -131,7 +128,7 @@ Builder.load_string(KV_TAB_GASTOS_EFECTUADOS)
 
 
 class TabGastosEfectuados(MDFloatLayout, MDTabsBase):
-    """Pestaña 1: Registro de gastos realizados conectado a la BD."""
+    """Pestaña 1: Registro de gastos efectuados."""
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -142,16 +139,13 @@ class TabGastosEfectuados(MDFloatLayout, MDTabsBase):
         Clock.schedule_once(lambda dt: self.cargar_categoria_inicial(), 0.1)
 
     def cargar_categoria_inicial(self):
-        """Carga la primera categoría disponible en la BD por defecto."""
         app = MDApp.get_running_app()
         if hasattr(app, "db") and app.db:
             categorias = app.db.obtener_categorias_egresos()
             if categorias:
-                cat = categorias[0]
-                self.seleccionar_categoria(cat)
+                self.seleccionar_categoria(categorias[0])
 
     def abrir_menu_categorias(self):
-        """Despliega la lista flotante con las categorías presupuestadas desde SQLite."""
         app = MDApp.get_running_app()
         categorias = []
         if hasattr(app, "db") and app.db:
@@ -177,43 +171,15 @@ class TabGastosEfectuados(MDFloatLayout, MDTabsBase):
         self.menu_categorias.open()
 
     def seleccionar_categoria(self, cat):
-        """Establece la categoría elegida y actualiza el monto presupuestado correspondiente."""
         self.categoria_seleccionada = cat
         self.ids.campo_categoria.text = cat["nombre"]
-        self.ids.campo_monto_esperado.text = formatear_monto_entero(
-            cat["monto_presupuestado"]
-        )
+        self.ids.campo_monto_esperado.text = formatear_monto_entero(cat["monto_presupuestado"])
 
         if self.menu_categorias:
             self.menu_categorias.dismiss()
             self.menu_categorias = None
 
-    def evaluar_estado_concepto(self):
-        """
-        Activa el campo 'Artículo o Servicio' únicamente cuando se
-        ingresa un monto gastado válido (mayor a 0).
-        """
-        monto_str = self.ids.campo_monto_ejecutado.text.strip()
-        try:
-            monto_val = int(monto_str) if monto_str else 0
-            if monto_val > 0:
-                self.ids.campo_descripcion.disabled = False
-                self.ids.campo_descripcion.helper_text = (
-                    "Ingrese el nombre del artículo o servicio *"
-                )
-                self.ids.campo_monto_ejecutado.error = False
-            else:
-                self.ids.campo_descripcion.disabled = True
-                self.ids.campo_descripcion.text = ""
-                self.ids.campo_descripcion.helper_text = (
-                    "Se activa al ingresar el monto gastado"
-                )
-        except ValueError:
-            self.ids.campo_descripcion.disabled = True
-            self.ids.campo_descripcion.text = ""
-
     def obtener_datos(self):
-        """Retorna los datos del formulario listos para registrar."""
         return {
             "categoria": self.ids.campo_categoria.text.strip(),
             "concepto": self.ids.campo_descripcion.text.strip(),
@@ -222,14 +188,11 @@ class TabGastosEfectuados(MDFloatLayout, MDTabsBase):
         }
 
     def validar_formulario(self):
-        """Valida que categoría, monto gastado y artículo/servicio estén completos."""
+        """Valida categoría y monto. Artículo o Servicio es opcional."""
         datos = self.obtener_datos()
         es_valido = True
 
-        if (
-            not datos["categoria"]
-            or datos["categoria"] == "Seleccione Categoría *"
-        ):
+        if not datos["categoria"] or datos["categoria"] == "Seleccione Categoría *":
             self.ids.campo_categoria.error = True
             es_valido = False
 
@@ -237,39 +200,24 @@ class TabGastosEfectuados(MDFloatLayout, MDTabsBase):
             monto_int = int(datos["monto"]) if datos["monto"] else 0
             if monto_int <= 0:
                 self.ids.campo_monto_ejecutado.error = True
-                self.ids.campo_monto_ejecutado.helper_text = (
-                    "Ingrese un monto mayor a 0"
-                )
-                self.ids.campo_monto_ejecutado.helper_text_mode = "on_error"
                 es_valido = False
         except ValueError:
             self.ids.campo_monto_ejecutado.error = True
             es_valido = False
 
-        if not datos["concepto"]:
-            self.ids.campo_descripcion.error = True
-            self.ids.campo_descripcion.helper_text = (
-                "Ingrese el artículo o servicio"
-            )
-            self.ids.campo_descripcion.helper_text_mode = "on_error"
-            es_valido = False
-
         return es_valido
 
     def limpiar_campos(self):
-        """Restablece los campos a su estado inicial."""
         self.ids.campo_monto_ejecutado.text = ""
         self.ids.campo_descripcion.text = ""
-        self.ids.campo_descripcion.disabled = True
         self.ids.campo_monto_ejecutado.error = False
-        self.ids.campo_descripcion.error = False
         self.cargar_categoria_inicial()
 
     def procesar_guardado(self):
-        """Valida, registra la transacción en SQLite y ¿sigue en la pestaña?."""
         if self.validar_formulario():
             app = MDApp.get_running_app()
             datos = self.obtener_datos()
             if hasattr(app, "guardar_gasto"):
                 app.guardar_gasto(datos)
             self.limpiar_campos()
+

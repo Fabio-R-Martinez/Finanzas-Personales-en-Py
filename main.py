@@ -3,7 +3,6 @@ import sys
 from pathlib import Path
 from kivy.config import Config
 
-# Desactivar gestos multitáctiles en Linux
 Config.set('input', 'mouse', 'mouse,disable_multitouch')
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -14,9 +13,9 @@ from kivymd.app import MDApp
 from kivymd.uix.screenmanager import MDScreenManager
 from src.database.db_manager import DBManager
 
-# Importaciones directas sin pasar por __init__.py
 from src.views.dashboard_screen import DashboardScreen
 from src.views.egresos.egresos_screen import FormularioGastoScreen
+from src.views.ingresos.ingresos_screen import FormularioIngresoScreen
 
 
 class FinanzasApp(MDApp):
@@ -30,11 +29,12 @@ class FinanzasApp(MDApp):
         sm = MDScreenManager()
         sm.add_widget(DashboardScreen(name='dashboard'))
         sm.add_widget(FormularioGastoScreen(name='formulario_gasto'))
+        sm.add_widget(FormularioIngresoScreen(name='formulario_ingreso'))
 
         return sm
 
     def ir_a_dashboard(self, direccion="left"):
-        """Retorna al Dashboard con animación hacia la izquierda."""
+        """Retorna al Dashboard con animación hacia la dirección especificada."""
         if self.root:
             self.root.transition.direction = direccion
             self.root.current = "dashboard"
@@ -53,14 +53,23 @@ class FinanzasApp(MDApp):
                 self.root.current = "formulario_ingreso"
 
     def guardar_gasto(self, datos=None):
-        """Procesa el guardado del gasto en SQLite sin abandonar la pantalla actual."""
+        """Procesa el guardado del gasto en SQLite."""
         if datos and hasattr(self, "db") and self.db:
             self.db.registrar_gasto_efectuado(
                 categoria=datos["categoria"],
                 concepto=datos["concepto"],
                 monto=datos["monto"]
             )
-            print(f"Gasto registrado en SQLite: {datos}")
+
+    def guardar_ingreso(self, datos=None):
+        """Procesa el guardado del ingreso en SQLite."""
+        if datos and hasattr(self, "db") and self.db:
+            self.db.registrar_ingreso(
+                categoria=datos["categoria"],
+                subcategoria=datos.get("subcategoria"),
+                concepto=datos["concepto"],
+                monto=datos["monto"]
+            )
 
 
 if __name__ == "__main__":

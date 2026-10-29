@@ -5,7 +5,6 @@ from kivy.lang import Builder
 
 
 def formatear_monto_entero(valor):
-    """Formatea valores numéricos como enteros con puntos para miles ($ 1.000)."""
     try:
         val_int = int(float(valor))
         return f"$ {val_int:,}".replace(",", ".")
@@ -44,18 +43,16 @@ KV_DASHBOARD_SCREEN = '''
                         orientation: 'vertical'
                         padding: "15dp"
                         spacing: "12dp"
-                        radius:
+                        radius: [15, 15, 15, 15]
                         elevation: 2
                         size_hint_x: 0.5
 
-                        # Bloque Superior: [ Botón Rojo ]  +  [ Gastos / $$$$ (Alineado a la derecha) ]
                         MDBoxLayout:
                             orientation: 'horizontal'
                             spacing: "10dp"
                             size_hint_y: None
                             height: "65dp"
 
-                            # Botón circular rojo
                             MDIconButton:
                                 icon: "minus"
                                 md_bg_color: 0.8, 0, 0, 1
@@ -64,7 +61,6 @@ KV_DASHBOARD_SCREEN = '''
                                 pos_hint: {"center_y": 0.5}
                                 on_release: app.ir_a_formulario_gasto()
 
-                            # Textos de Gastos (Alineados a la derecha cerca del centro)
                             MDBoxLayout:
                                 orientation: 'vertical'
                                 spacing: "2dp"
@@ -87,13 +83,13 @@ KV_DASHBOARD_SCREEN = '''
                                     theme_text_color: "Custom"
                                     text_color: 0.8, 0, 0, 1
 
-                        # Barra de Porcentaje (Gasto Rojo sobre 95% Presupuesto Verde)
+                        # Barra de Porcentaje para Gastos (Gasto Rojo sobre 95% Presupuesto Verde)
                         MDProgressBar:
                             id: progreso_gastos
                             value: 0
                             max: 100
-                            color: 0.8, 0, 0, 1             # Barra de gastos (Rojo)
-                            back_color: 0, 0.7, 0.2, 0.35     # Indicador del 95% (Verde)
+                            color: 0.8, 0, 0, 1
+                            back_color: 0, 0.7, 0.2, 0.35
                             size_hint_y: None
                             height: "8dp"
 
@@ -102,18 +98,16 @@ KV_DASHBOARD_SCREEN = '''
                         orientation: 'vertical'
                         padding: "15dp"
                         spacing: "12dp"
-                        radius:
+                        radius: [15, 15, 15, 15]
                         elevation: 2
                         size_hint_x: 0.5
 
-                        # Bloque Superior: [ Ingresos / $$$$ (Alineado a la izquierda) ]  +  [ Botón Verde ]
                         MDBoxLayout:
                             orientation: 'horizontal'
                             spacing: "10dp"
                             size_hint_y: None
                             height: "65dp"
 
-                            # Textos de Ingresos (Alineados a la izquierda cerca del centro)
                             MDBoxLayout:
                                 orientation: 'vertical'
                                 spacing: "2dp"
@@ -136,7 +130,6 @@ KV_DASHBOARD_SCREEN = '''
                                     theme_text_color: "Custom"
                                     text_color: 0, 0.6, 0, 1
 
-                            # Botón circular verde
                             MDIconButton:
                                 icon: "plus"
                                 md_bg_color: 0, 0.6, 0, 1
@@ -145,13 +138,13 @@ KV_DASHBOARD_SCREEN = '''
                                 pos_hint: {"center_y": 0.5}
                                 on_release: if hasattr(app, "ir_a_formulario_ingreso"): app.ir_a_formulario_ingreso()
 
-                        # Barra de Porcentaje para Ingresos
+                        # Barra de Porcentaje para Ingresos (Ingresos Realizados sobre Ingresos Esperados)
                         MDProgressBar:
                             id: progreso_ingresos
                             value: 0
                             max: 100
                             color: 0, 0.6, 0, 1
-                            back_color: 0.8, 0.8, 0.8, 0.35
+                            back_color: 0, 0.6, 0, 0.25
                             size_hint_y: None
                             height: "8dp"
 '''
@@ -160,24 +153,24 @@ Builder.load_string(KV_DASHBOARD_SCREEN)
 
 
 class DashboardScreen(MDScreen):
-    """Pantalla Principal Dashboard."""
+    """Pantalla principal del Dashboard."""
 
     def on_enter(self, *args):
-        """Actualiza los datos automáticamente al ingresar a la pantalla."""
         super().on_enter(*args)
         self.actualizar_dashboard()
 
     def actualizar_dashboard(self):
-        """Lee SQLite y actualiza el total gastado y la línea de relación con el 95% del presupuesto."""
         app = MDApp.get_running_app()
         if hasattr(app, "db") and app.db:
             resumen = app.db.obtener_resumen_gastos_dashboard()
 
-            total_gastado = resumen["total_gastado"]
-            porcentaje = resumen["porcentaje"]
+            total_gastado = resumen.get("total_gastado", 0.0)
+            total_ingresos = resumen.get("total_ingresos", 0.0)
+            porcentaje_gastos = resumen.get("porcentaje_gastos", 0.0)
+            porcentaje_ingresos = resumen.get("porcentaje_ingresos", 0.0)
 
-            # Actualiza el monto total de gastos
             self.ids.lbl_total_gastado.text = formatear_monto_entero(total_gastado)
+            self.ids.lbl_total_ingresos.text = formatear_monto_entero(total_ingresos)
 
-            # Actualiza la relación visual en la barra de progreso
-            self.ids.progreso_gastos.value = min(100.0, porcentaje)
+            self.ids.progreso_gastos.value = min(100.0, porcentaje_gastos)
+            self.ids.progreso_ingresos.value = min(100.0, porcentaje_ingresos)
